@@ -1,0 +1,20 @@
+{
+    "version": "0.0.0",
+    "contributors": [
+        "haxeui",
+        "ianharrigan"
+    ],
+    "license": "MIT",
+    "tags": [
+    ],
+    "releasenote": "0.0.0",
+    "dependencies": {
+        "db-core": "",
+        "mysql": "",
+        "promises": ""
+    },
+    "classPath": "src",
+    "name": "db-mysql",
+    "description": "",
+    "url": ""
+}

@@ -135,7 +135,7 @@ class MySqlTable implements ITable {
                 return;
             }
             var values = [];
-            var sql = buildSelect(this, query, values);
+            var sql = buildSelect(this, query, null, values, db.definedTableRelationships());
             connection.all(sql, values).then(response -> {
                 var records = [];
                 for (item in response.data) {
@@ -154,7 +154,8 @@ class MySqlTable implements ITable {
                 reject(new DatabaseError('table "${name}" does not exist', 'findOne'));
                 return;
             }
-            connection.get(buildSelect(this, query, 1)).then(response -> {
+            var sql = buildSelect(this, query, 1, null, db.definedTableRelationships());
+            connection.get(sql).then(response -> {
                 resolve(new DatabaseResult(db, this, Record.fromDynamic(response.data)));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "connect"));

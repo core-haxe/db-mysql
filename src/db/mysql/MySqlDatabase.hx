@@ -9,6 +9,7 @@ import db.utils.SqlUtils.*;
 
 class MySqlDatabase implements IDatabase {
     private var _connection:MySqlDatabaseConnection = null;
+    private var _relationshipDefs:RelationshipDefinitions = null;
 
     public function new() {
     }
@@ -21,6 +22,17 @@ class MySqlDatabase implements IDatabase {
             user: details.user,
             pass: details.pass
         });
+    }
+
+    public function defineTableRelationship(field1:String, field2:String) {
+        if (_relationshipDefs == null) {
+            _relationshipDefs = new RelationshipDefinitions();
+        }
+        _relationshipDefs.add(field1, field2);
+    }
+
+    public function definedTableRelationships():RelationshipDefinitions {
+        return _relationshipDefs;
     }
 
     public function connect():Promise<DatabaseResult<Bool>> {

@@ -17,6 +17,12 @@ class MySqlTable implements ITable {
         this.db = db;
     }
 
+    public function schema():Promise<DatabaseResult<TableSchema>> {
+        return new Promise((resolve, reject) -> {
+            resolve(null);
+        });
+    }
+
     public function all():Promise<DatabaseResult<Array<Record>>> {
         return new Promise((resolve, reject) -> {
             if (!exists) {

@@ -24,6 +24,12 @@ class MySqlDatabase implements IDatabase {
         });
     }
 
+    public function schema():Promise<DatabaseResult<DatabaseSchema>> {
+        return new Promise((resolve, reject) -> {
+            resolve(null);
+        });
+    }
+
     public function defineTableRelationship(field1:String, field2:String) {
         if (_relationshipDefs == null) {
             _relationshipDefs = new RelationshipDefinitions();

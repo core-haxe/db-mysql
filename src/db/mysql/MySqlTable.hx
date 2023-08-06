@@ -6,7 +6,7 @@ import mysql.DatabaseConnection as MySqlDatabaseConnection;
 import mysql.MySqlError;
 import db.mysql.Utils.*;
 import db.utils.SqlUtils.*;
-import db.Query.QueryExpr;
+import Query.QueryExpr;
 
 class MySqlTable implements ITable {
     public var db:IDatabase;

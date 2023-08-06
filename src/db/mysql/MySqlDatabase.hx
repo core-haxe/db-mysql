@@ -11,6 +11,13 @@ class MySqlDatabase implements IDatabase {
     private var _connection:MySqlDatabaseConnection = null;
     private var _relationshipDefs:RelationshipDefinitions = null;
 
+    public function setProperty(name:String, value:Any):Void {
+
+    }
+    public function getProperty(name:String, defaultValue:Any):Any {
+        return null;
+    }
+
     public function new() {
     }
 

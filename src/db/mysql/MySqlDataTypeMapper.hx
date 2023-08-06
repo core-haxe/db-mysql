@@ -21,6 +21,7 @@ class MySqlDataTypeMapper implements IDataTypeMapper {
             case Boolean:       'INT';
             case Text(n):       'VARCHAR($n)';
             case Memo:          'TEXT';
+            case Binary:        'BLOB';
         }
     }
 }

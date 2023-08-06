@@ -134,7 +134,7 @@ class MySqlTable implements ITable {
         });
     }
 
-    public function find(query:QueryExpr):Promise<DatabaseResult<Array<Record>>> {
+    public function find(query:QueryExpr, allowRelationships:Bool = true):Promise<DatabaseResult<Array<Record>>> {
         return new Promise((resolve, reject) -> {
             if (!exists) {
                 reject(new DatabaseError('table "${name}" does not exist', 'find'));
@@ -154,7 +154,7 @@ class MySqlTable implements ITable {
         });
     }
 
-    public function findOne(query:QueryExpr):Promise<DatabaseResult<Record>> {
+    public function findOne(query:QueryExpr, allowRelationships:Bool = true):Promise<DatabaseResult<Record>> {
         return new Promise((resolve, reject) -> {
             if (!exists) {
                 reject(new DatabaseError('table "${name}" does not exist', 'findOne'));

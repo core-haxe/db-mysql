@@ -23,6 +23,12 @@ class MySqlTable implements ITable {
         });
     }
 
+    public function applySchema(newSchema:TableSchema):Promise<DatabaseResult<TableSchema>> {
+        return new Promise((resolve, reject) -> {
+            resolve(null);
+        });
+    }
+
     public function all():Promise<DatabaseResult<Array<Record>>> {
         return new Promise((resolve, reject) -> {
             if (!exists) {
@@ -41,7 +47,7 @@ class MySqlTable implements ITable {
         });
     }
 
-    public function page(pageIndex:Int, pageSize:Int = 100, query:QueryExpr = null):Promise<DatabaseResult<Array<Record>>> {
+    public function page(pageIndex:Int, pageSize:Int = 100, query:QueryExpr = null, allowRelationships:Bool = true):Promise<DatabaseResult<Array<Record>>> {
         return new Promise((resolve, reject) -> {
             if (!exists) {
                 reject(new DatabaseError('table "${name}" does not exist', 'page'));
@@ -166,6 +172,30 @@ class MySqlTable implements ITable {
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "connect"));
             });
+        });
+    }
+
+    public function findUnique(columnName:String, query:QueryExpr = null, allowRelationships:Bool = true):Promise<DatabaseResult<Array<Record>>> {
+        return new Promise((resolve, reject) -> {
+            resolve(new DatabaseResult(db, this, null));
+        });
+    }
+
+    public function count(query:QueryExpr = null):Promise<DatabaseResult<Int>> {
+        return new Promise((resolve, reject) -> {
+            resolve(new DatabaseResult(db, this, 0));
+        });
+    }
+
+    public function addColumn(column:ColumnDefinition):Promise<DatabaseResult<Bool>> {
+        return new Promise((resolve, reject) -> {
+            resolve(new DatabaseResult(db, this, false));
+        });
+    }
+
+    public function removeColumn(column:ColumnDefinition):Promise<DatabaseResult<Bool>> {
+        return new Promise((resolve, reject) -> {
+            resolve(new DatabaseResult(db, this, false));
         });
     }
 

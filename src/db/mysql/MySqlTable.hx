@@ -68,10 +68,27 @@ class MySqlTable implements ITable {
     public function page(pageIndex:Int, pageSize:Int = 100, query:QueryExpr = null, allowRelationships:Bool = true):Promise<DatabaseResult<Array<Record>>> {
         return new Promise((resolve, reject) -> {
             if (!exists) {
-                reject(new DatabaseError('table "${name}" does not exist', 'page'));
+                reject(new DatabaseError('table "${name}" does not exist', 'find'));
                 return;
             }
-            reject(new DatabaseError("not implemented", "page"));
+
+            refreshSchema().then(schemaResult -> {
+                var relationshipDefinintions = db.definedTableRelationships();
+                if (!allowRelationships) {
+                    relationshipDefinintions = null;
+                }
+                var values = [];
+                var sql = buildSelect(this, null, pageSize, pageIndex * pageSize, values, relationshipDefinintions, schemaResult.data);
+                return connection.all(sql, values);
+            }).then(response -> {
+                var records = [];
+                for (item in response.data) {
+                    records.push(Record.fromDynamic(item));
+                }
+                resolve(new DatabaseResult(db, this, records));
+            }, (error:MySqlError) -> {
+                reject(MySqlError2DatabaseError(error, "connect"));
+            });
         });
     }
 

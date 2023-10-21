@@ -65,10 +65,24 @@ class MySqlDatabase implements IDatabase {
         });
     }
 
+    private var _schema:DatabaseSchema = null;
     public function schema():Promise<DatabaseResult<DatabaseSchema>> {
         return new Promise((resolve, reject) -> {
-            resolve(null);
+            if (_schema == null) {
+                Utils.loadFullDatabaseSchema(_connection).then(schema -> {
+                    _schema = schema;
+                    resolve(new DatabaseResult(this, _schema));
+                }, (error:MySqlError) -> {
+                    reject(MySqlError2DatabaseError(error, "schema"));
+                });
+            } else {
+                resolve(new DatabaseResult(this, _schema));
+            }
         });
+    }
+
+    public function clearCachedSchema() {
+        _schema = null;
     }
 
     public function defineTableRelationship(field1:String, field2:String) {

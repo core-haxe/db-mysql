@@ -1,9 +1,14 @@
 package db.mysql;
 
 import mysql.MySqlError;
+import promises.Promise;
+import mysql.DatabaseConnection as MySqlDatabaseConnection;
 
 class Utils {
     public static inline var SQL_TABLE_EXISTS = "SELECT * FROM information_schema.TABLES WHERE TABLE_NAME=?;";
+    public static inline var SQL_LIST_TABLES_AND_FIELDS = "SELECT table_name, column_name, ordinal_position FROM information_schema.columns
+                                                           WHERE table_schema = 'persons'
+                                                           ORDER BY table_name,ordinal_position;";
 
     public static function MySqlError2DatabaseError(error:MySqlError, call:String) {
         var dbError = new DatabaseError(error.message, call);
@@ -63,5 +68,29 @@ class Utils {
 
         sql += ');';
         return sql;
+    }
+
+    public static function loadFullDatabaseSchema(connection:MySqlDatabaseConnection):Promise<DatabaseSchema> {
+        return new Promise((resolve, reject) -> {
+            var schema:DatabaseSchema = {};
+            connection.all(SQL_LIST_TABLES_AND_FIELDS).then(result -> {
+                for (r in result.data) {
+                    var table = schema.findTable(r.table_name);
+                    if (table == null) {
+                        table = {
+                            name: r.table_name
+                        };
+                        schema.tables.push(table);
+                    }
+                    table.columns.push({
+                        name: r.column_name,
+                        type: null
+                    });
+                }
+                resolve(schema);
+            }, error -> {
+                reject(error);
+            });
+        });
     }
 }

@@ -318,13 +318,37 @@ class MySqlTable implements ITable {
 
     public function addColumn(column:ColumnDefinition):Promise<DatabaseResult<Bool>> {
         return new Promise((resolve, reject) -> {
-            resolve(new DatabaseResult(db, this, false));
+            if (!exists) {
+                reject(new DatabaseError('table "${name}" does not exist', 'addColumn'));
+                return;
+            }
+
+            var sql = buildAddColumns(this.name, [column], MySqlDataTypeMapper.get());
+            connection.exec(sql).then(result -> {
+                clearCachedSchema();
+                cast(db, MySqlDatabase).clearCachedSchema();
+                resolve(new DatabaseResult(db, this, true));
+            }, (error:MySqlError) -> {
+                reject(MySqlError2DatabaseError(error, "addColumn"));
+            });
         });
     }
 
     public function removeColumn(column:ColumnDefinition):Promise<DatabaseResult<Bool>> {
         return new Promise((resolve, reject) -> {
-            resolve(new DatabaseResult(db, this, false));
+            if (!exists) {
+                reject(new DatabaseError('table "${name}" does not exist', 'addColumn'));
+                return;
+            }
+
+            var sql = buildRemoveColumns(this.name, [column], MySqlDataTypeMapper.get());
+            connection.exec(sql).then(result -> {
+                clearCachedSchema();
+                cast(db, MySqlDatabase).clearCachedSchema();
+                resolve(new DatabaseResult(db, this, true));
+            }, (error:MySqlError) -> {
+                reject(MySqlError2DatabaseError(error, "addColumn"));
+            });
         });
     }
 

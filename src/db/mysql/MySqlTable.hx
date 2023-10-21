@@ -40,7 +40,35 @@ class MySqlTable implements ITable {
 
     public function applySchema(newSchema:TableSchema):Promise<DatabaseResult<TableSchema>> {
         return new Promise((resolve, reject) -> {
-            resolve(null);
+            
+            var schemaChanged:Bool = false;
+
+            schema().then(result -> {
+                var promises = [];
+                var currentSchema = result.data;
+                if (currentSchema != null && !currentSchema.equals(newSchema)) {
+                    var diff = currentSchema.diff(newSchema);
+
+                    for (added in diff.addedColumns) {
+                        promises.push(addColumn.bind(added));
+                        schemaChanged = true;
+                    }
+
+                    for (removed in diff.removedColumns) {
+                        promises.push(removeColumn.bind(removed));
+                        schemaChanged = true;
+                    }
+                }
+                return PromiseUtils.runSequentially(promises);
+            }).then(result -> {
+                if (schemaChanged) {
+                    clearCachedSchema();
+                    cast(db, MySqlDatabase).clearCachedSchema();
+                }
+                resolve(new DatabaseResult(db, this, newSchema));
+            }, (error:DatabaseError) -> {
+                reject(error);
+            });
         });
     }
 

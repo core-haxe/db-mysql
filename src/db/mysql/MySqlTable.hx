@@ -17,10 +17,25 @@ class MySqlTable implements ITable {
         this.db = db;
     }
 
+    private var _tableSchema:TableSchema = null;
     public function schema():Promise<DatabaseResult<TableSchema>> {
         return new Promise((resolve, reject) -> {
-            resolve(null);
+            if (_tableSchema != null) {
+                resolve(new DatabaseResult(db, this, _tableSchema));
+                return;
+            }
+
+            this.db.schema().then(result -> {
+                _tableSchema = result.data.findTable(this.name);
+                resolve(new DatabaseResult(db, this, _tableSchema));
+            }, (error:DatabaseError) -> {
+                reject(error);
+            });
         });
+    }
+
+    public function clearCachedSchema() {
+        _tableSchema = null;
     }
 
     public function applySchema(newSchema:TableSchema):Promise<DatabaseResult<TableSchema>> {

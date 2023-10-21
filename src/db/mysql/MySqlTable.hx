@@ -250,7 +250,20 @@ class MySqlTable implements ITable {
 
     public function count(query:QueryExpr = null):Promise<DatabaseResult<Int>> {
         return new Promise((resolve, reject) -> {
-            resolve(new DatabaseResult(db, this, 0));
+            if (!exists) {
+                reject(new DatabaseError('table "${name}" does not exist', 'findOne'));
+                return;
+            }
+
+            refreshSchema().then(schemaResult -> {
+                var sql = buildCount(this, query);
+                return connection.get(sql);
+            }).then(response -> {
+                var record = Record.fromDynamic(response.data[0]);
+                resolve(new DatabaseResult(db, this, cast record.values()[0]));
+            }, (error:MySqlError) -> {
+                reject(MySqlError2DatabaseError(error, "connect"));
+            });
         });
     }
 

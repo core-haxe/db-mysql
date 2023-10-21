@@ -180,8 +180,12 @@ class MySqlTable implements ITable {
             }
 
             refreshSchema().then(schemaResult -> {
+                var relationshipDefinintions = db.definedTableRelationships();
+                if (!allowRelationships) {
+                    relationshipDefinintions = null;
+                }
                 var values = [];
-                var sql = buildSelect(this, query, null, values, db.definedTableRelationships());
+                var sql = buildSelect(this, query, null, values, relationshipDefinintions, schemaResult.data);
                 return connection.all(sql, values);
             }).then(response -> {
                 var records = [];
@@ -203,7 +207,11 @@ class MySqlTable implements ITable {
             }
 
             refreshSchema().then(schemaResult -> {
-                var sql = buildSelect(this, query, 1, null, db.definedTableRelationships());
+                var relationshipDefinintions = db.definedTableRelationships();
+                if (!allowRelationships) {
+                    relationshipDefinintions = null;
+                }
+                var sql = buildSelect(this, query, 1, null, relationshipDefinintions, schemaResult.data);
                 return connection.get(sql);
             }).then(response -> {
                 if (response.data != null && (response.data is Array)) {

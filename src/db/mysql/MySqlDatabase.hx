@@ -10,6 +10,7 @@ import db.utils.SqlUtils.*;
 class MySqlDatabase implements IDatabase {
     private var _connection:MySqlDatabaseConnection = null;
     private var _relationshipDefs:RelationshipDefinitions = null;
+    private var _config:Dynamic;
 
     public function setProperty(name:String, value:Any):Void {
 
@@ -22,12 +23,45 @@ class MySqlDatabase implements IDatabase {
     }
 
     public function config(details:Dynamic) {
+        _config = details;
         // TODO: validate details
         _connection = new MySqlDatabaseConnection({
-            database: details.database,
+            //database: details.database,
             host: details.host,
             user: details.user,
             pass: details.pass
+        });
+    }
+
+    public function create():Promise<DatabaseResult<IDatabase>> {
+        return new Promise((resolve, reject) -> {
+            if (_config.database == null) {
+                resolve(new DatabaseResult(this));
+                return;
+            } else {
+                _connection.exec(buildCreateDatabase(_config.database)).then(response -> {
+                    return _connection.query(buildSelectDatabase(_config.database));
+                }).then(_ -> {
+                    resolve(new DatabaseResult(this));
+                }, (error:MySqlError) -> {
+                    reject(MySqlError2DatabaseError(error, "delete"));
+                });
+            }
+        });
+    }
+
+    public function delete():Promise<DatabaseResult<Bool>> {
+        return new Promise((resolve, reject) -> {
+            if (_config.database == null) {
+                resolve(new DatabaseResult(this, true));
+                return;
+            } else {
+                _connection.exec(buildDropDatabase(_config.database)).then(response -> {
+                    resolve(new DatabaseResult(this, true));
+                }, (error:MySqlError) -> {
+                    reject(MySqlError2DatabaseError(error, "delete"));
+                });
+            }
         });
     }
 
@@ -51,7 +85,17 @@ class MySqlDatabase implements IDatabase {
     public function connect():Promise<DatabaseResult<Bool>> {
         return new Promise((resolve, reject) -> {
             _connection.open().then(response -> {
-                resolve(new DatabaseResult(this, response.data));
+                if (_config.database == null) {
+                    return null;
+                }
+                return _connection.query(buildHasDatabase(_config.database));
+            }).then(result -> {
+                if (result == null || result.data == null || result.data.length == 0) {
+                    return null;
+                }
+                return _connection.query(buildSelectDatabase(_config.database));
+            }).then(_ -> {
+                resolve(new DatabaseResult(this, true));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "connect"));
             });

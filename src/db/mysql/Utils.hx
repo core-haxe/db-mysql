@@ -10,6 +10,22 @@ class Utils {
         return dbError;
     }
 
+    public static function buildCreateDatabase(databaseName:String):String {
+        return 'CREATE DATABASE IF NOT EXISTS ${databaseName};';
+    }
+
+    public static function buildDropDatabase(databaseName:String):String {
+        return 'DROP DATABASE IF EXISTS ${databaseName};';
+    }
+
+    public static function buildSelectDatabase(databaseName:String):String {
+        return 'USE ${databaseName};';
+    }
+
+    public static function buildHasDatabase(databaseName:String):String {
+        return 'SHOW DATABASES LIKE \'${databaseName}\';';
+    }
+
     public static function buildCreateTable(tableName:String, columns:Array<ColumnDefinition>, typeMapper:IDataTypeMapper) {
         var sql = 'CREATE TABLE ${tableName} (\n';
 

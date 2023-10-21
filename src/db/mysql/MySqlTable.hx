@@ -50,7 +50,10 @@ class MySqlTable implements ITable {
                 reject(new DatabaseError('table "${name}" does not exist', 'all'));
                 return;
             }
-            connection.all(buildSelect(this)).then(response -> {
+
+            refreshSchema().then(schemaResult -> {
+                return connection.all(buildSelect(this));
+            }).then(response -> {
                 var records = [];
                 for (item in response.data) {
                     records.push(Record.fromDynamic(item));
@@ -79,9 +82,12 @@ class MySqlTable implements ITable {
                 return;
             }
 
-            var values = [];
-            var sql = buildInsert(this, record, values);
-            connection.get(sql, values).then(response -> {
+            refreshSchema().then(schemaResult -> {
+                var values = [];
+                var sql = buildInsert(this, record, values);
+                trace(sql);
+                return connection.get(sql, values);
+            }).then(response -> {
                 resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "add"));
@@ -115,9 +121,12 @@ class MySqlTable implements ITable {
                 reject(new DatabaseError('table "${name}" does not exist', 'delete'));
                 return;
             }
-            var values = [];
-            var sql = buildDeleteRecord(this, record, values);
-            connection.get(sql, values).then(response -> {
+
+            refreshSchema().then(schemaResult -> {
+                var values = [];
+                var sql = buildDeleteRecord(this, record, values);
+                return connection.get(sql, values);
+            }).then(response -> {
                 resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "delete"));
@@ -131,7 +140,10 @@ class MySqlTable implements ITable {
                 reject(new DatabaseError('table "${name}" does not exist', 'deleteAll'));
                 return;
             }
-            connection.exec(buildDeleteWhere(this, query)).then(response -> {
+
+            refreshSchema().then(schemaResult -> {
+                return connection.exec(buildDeleteWhere(this, query));
+            }).then(response -> {
                 resolve(new DatabaseResult(db, this, true));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "deleteAll"));
@@ -145,9 +157,12 @@ class MySqlTable implements ITable {
                 reject(new DatabaseError('table "${name}" does not exist', 'update'));
                 return;
             }
-            var values = [];
-            var sql = buildUpdate(this, query, record, values);
-            connection.get(sql, values).then(response -> {
+
+            refreshSchema().then(schemaResult -> {
+                var values = [];
+                var sql = buildUpdate(this, query, record, values);
+                return connection.get(sql, values);
+            }).then(response -> {
                 resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "update"));
@@ -161,9 +176,12 @@ class MySqlTable implements ITable {
                 reject(new DatabaseError('table "${name}" does not exist', 'find'));
                 return;
             }
-            var values = [];
-            var sql = buildSelect(this, query, null, values, db.definedTableRelationships());
-            connection.all(sql, values).then(response -> {
+
+            refreshSchema().then(schemaResult -> {
+                var values = [];
+                var sql = buildSelect(this, query, null, values, db.definedTableRelationships());
+                return connection.all(sql, values);
+            }).then(response -> {
                 var records = [];
                 for (item in response.data) {
                     records.push(Record.fromDynamic(item));
@@ -181,8 +199,11 @@ class MySqlTable implements ITable {
                 reject(new DatabaseError('table "${name}" does not exist', 'findOne'));
                 return;
             }
-            var sql = buildSelect(this, query, 1, null, db.definedTableRelationships());
-            connection.get(sql).then(response -> {
+
+            refreshSchema().then(schemaResult -> {
+                var sql = buildSelect(this, query, 1, null, db.definedTableRelationships());
+                return connection.get(sql);
+            }).then(response -> {
                 resolve(new DatabaseResult(db, this, Record.fromDynamic(response.data)));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "connect"));
@@ -217,5 +238,21 @@ class MySqlTable implements ITable {
     private var connection(get, null):MySqlDatabaseConnection;
     private function get_connection():MySqlDatabaseConnection {
         return @:privateAccess cast(db, MySqlDatabase)._connection;
+    }
+
+    private function refreshSchema():Promise<DatabaseResult<DatabaseSchema>> { // we'll only refresh the data schema if there are table relationships, since the queries might need them
+        return new Promise((resolve, reject) -> {
+            var alwaysAliasResultFields:Bool = this.db.getProperty("alwaysAliasResultFields", false);
+            if (alwaysAliasResultFields == false && db.definedTableRelationships() == null) {
+                resolve(new DatabaseResult(db, this, null));
+                return;
+            }
+
+            db.schema().then(result -> {
+                resolve(result);
+            }, (error) -> {
+                reject(error);
+            });
+        });
     }
 }

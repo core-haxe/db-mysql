@@ -132,7 +132,7 @@ class MySqlTable implements ITable {
             var insertedId:Int = -1;
             refreshSchema().then(schemaResult -> {
                 var values = [];
-                var sql = buildInsert(this, record, values);
+                var sql = buildInsert(this, record, values, MySqlDataTypeMapper.get());
                 return connection.get(sql, values);
             }).then(response -> {
                 insertedId = response.data.insertId;
@@ -209,7 +209,7 @@ class MySqlTable implements ITable {
 
             refreshSchema().then(schemaResult -> {
                 var values = [];
-                var sql = buildUpdate(this, query, record, values);
+                var sql = buildUpdate(this, query, record, values, MySqlDataTypeMapper.get());
                 return connection.get(sql, values);
             }).then(response -> {
                 resolve(new DatabaseResult(db, this, record));

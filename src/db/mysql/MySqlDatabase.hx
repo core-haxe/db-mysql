@@ -40,6 +40,7 @@ class MySqlDatabase implements IDatabase {
                 return;
             } else {
                 _connection.exec(buildCreateDatabase(_config.database)).then(response -> {
+                    clearCachedSchema();
                     return _connection.query(buildSelectDatabase(_config.database));
                 }).then(_ -> {
                     resolve(new DatabaseResult(this));
@@ -57,6 +58,7 @@ class MySqlDatabase implements IDatabase {
                 return;
             } else {
                 _connection.exec(buildDropDatabase(_config.database)).then(response -> {
+                    clearCachedSchema();
                     resolve(new DatabaseResult(this, true));
                 }, (error:MySqlError) -> {
                     reject(MySqlError2DatabaseError(error, "delete"));

@@ -310,7 +310,7 @@ class MySqlTable implements ITable {
                 var sql = buildCount(this, query);
                 return connection.get(sql);
             }).then(response -> {
-                var record = Record.fromDynamic(response.data[0]);
+                var record = Record.fromDynamic(response.data);
                 resolve(new DatabaseResult(db, this, cast record.values()[0]));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "connect"));

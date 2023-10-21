@@ -82,12 +82,14 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            var insertedId:Int = -1;
             refreshSchema().then(schemaResult -> {
                 var values = [];
                 var sql = buildInsert(this, record, values);
-                trace(sql);
                 return connection.get(sql, values);
             }).then(response -> {
+                insertedId = response.data.insertId;
+                record.field("_insertedId", insertedId);
                 resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "add"));
@@ -204,7 +206,11 @@ class MySqlTable implements ITable {
                 var sql = buildSelect(this, query, 1, null, db.definedTableRelationships());
                 return connection.get(sql);
             }).then(response -> {
-                resolve(new DatabaseResult(db, this, Record.fromDynamic(response.data)));
+                if (response.data != null && (response.data is Array)) {
+                    resolve(new DatabaseResult(db, this, Record.fromDynamic(response.data[0])));
+                } else {
+                    resolve(new DatabaseResult(db, this, Record.fromDynamic(response.data)));
+                }
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "connect"));
             });

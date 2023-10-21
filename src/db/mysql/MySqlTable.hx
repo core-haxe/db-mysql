@@ -244,7 +244,28 @@ class MySqlTable implements ITable {
 
     public function findUnique(columnName:String, query:QueryExpr = null, allowRelationships:Bool = true):Promise<DatabaseResult<Array<Record>>> {
         return new Promise((resolve, reject) -> {
-            resolve(new DatabaseResult(db, this, null));
+            if (!exists) {
+                reject(new DatabaseError('table "${name}" does not exist', 'findOne'));
+                return;
+            }
+
+            refreshSchema().then(schemaResult -> {
+                var relationshipDefinintions = db.definedTableRelationships();
+                if (!allowRelationships) {
+                    relationshipDefinintions = null;
+                }
+                var values = [];
+                var sql = buildDistinctSelect(this, query, columnName, null, null, values, relationshipDefinintions, schemaResult.data);
+                return connection.all(sql, values);
+            }).then(response -> {
+                var records = [];
+                for (item in response.data) {
+                    records.push(Record.fromDynamic(item));
+                }
+                resolve(new DatabaseResult(db, this, records));
+            }, (error:MySqlError) -> {
+                reject(MySqlError2DatabaseError(error, "connect"));
+            });
         });
     }
 

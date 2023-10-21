@@ -80,7 +80,9 @@ class MySqlTable implements ITable {
             }
 
             refreshSchema().then(schemaResult -> {
-                return connection.all(buildSelect(this));
+                var values = [];
+                var sql = buildSelect(this, null, null, null, values, db.definedTableRelationships(), schemaResult.data);
+                return connection.all(sql);
             }).then(response -> {
                 var records = [];
                 for (item in response.data) {

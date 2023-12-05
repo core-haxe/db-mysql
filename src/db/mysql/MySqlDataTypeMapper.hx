@@ -1,5 +1,6 @@
 package db.mysql;
 
+import sqlite.Database;
 import haxe.io.Bytes;
 
 class MySqlDataTypeMapper implements IDataTypeMapper {
@@ -41,5 +42,9 @@ class MySqlDataTypeMapper implements IDataTypeMapper {
             case Binary:        'BLOB';
             case Unknown:       'TEXT';
         }
+    }
+
+    public function databaseTypeToHaxeType(databaseType:String):ColumnType {
+        return Memo;
     }
 }

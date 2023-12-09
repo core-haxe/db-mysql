@@ -1,6 +1,5 @@
 package db.mysql;
 
-import sqlite.Database;
 import haxe.io.Bytes;
 
 class MySqlDataTypeMapper implements IDataTypeMapper {

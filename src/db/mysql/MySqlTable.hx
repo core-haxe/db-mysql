@@ -258,8 +258,9 @@ class MySqlTable implements ITable {
                 if (!allowRelationships) {
                     relationshipDefinintions = null;
                 }
-                var sql = buildSelect(this, query, 1, null, relationshipDefinintions, schemaResult.data);
-                return connection.get(sql);
+                var values = [];
+                var sql = buildSelect(this, query, 1, values, relationshipDefinintions, schemaResult.data);
+                return connection.get(sql, values);
             }).then(response -> {
                 var record:Record = null;
                 if (response.data != null && (response.data is Array)) {

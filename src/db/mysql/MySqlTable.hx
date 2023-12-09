@@ -261,11 +261,13 @@ class MySqlTable implements ITable {
                 var sql = buildSelect(this, query, 1, null, relationshipDefinintions, schemaResult.data);
                 return connection.get(sql);
             }).then(response -> {
+                var record:Record = null;
                 if (response.data != null && (response.data is Array)) {
-                    resolve(new DatabaseResult(db, this, Record.fromDynamic(response.data[0])));
-                } else {
-                    resolve(new DatabaseResult(db, this, Record.fromDynamic(response.data)));
+                    record = Record.fromDynamic(response.data[0]);
+                } else if (response.data != null) {
+                    record =  Record.fromDynamic(response.data);
                 }
+                resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "connect"));
             });

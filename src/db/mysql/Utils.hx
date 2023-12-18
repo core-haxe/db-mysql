@@ -7,7 +7,7 @@ import mysql.DatabaseConnection as MySqlDatabaseConnection;
 using StringTools;
 
 class Utils {
-    public static inline var SQL_TABLE_EXISTS = "SELECT * FROM information_schema.TABLES WHERE TABLE_NAME=?;";
+    public static inline var SQL_TABLE_EXISTS = "SELECT * FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME=?;";
     public static inline var SQL_LIST_TABLES_AND_FIELDS = "SELECT * FROM information_schema.columns
                                                            WHERE table_schema = ?
                                                            ORDER BY table_name,ordinal_position;";

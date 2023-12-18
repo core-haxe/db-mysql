@@ -12,11 +12,21 @@ class MySqlDatabase implements IDatabase {
     private var _relationshipDefs:RelationshipDefinitions = null;
     private var _config:Dynamic;
 
+    private var _properties:Map<String, Any> = [];
     public function setProperty(name:String, value:Any):Void {
-
+        if (name == "complexRelationships") {
+            if (_relationshipDefs == null) {
+                _relationshipDefs = new RelationshipDefinitions();
+            }
+            _relationshipDefs.complexRelationships = value;
+        }
+        _properties.set(name, value);
     }
     public function getProperty(name:String, defaultValue:Any):Any {
-        return null;
+        if (_properties == null || !_properties.exists(name)) {
+            return defaultValue;
+        }
+        return _properties.get(name);
     }
 
     public function new() {
@@ -25,11 +35,17 @@ class MySqlDatabase implements IDatabase {
     public function config(details:Dynamic) {
         _config = details;
         // TODO: validate details
+    }
+
+    private function createConnection() {
+        if (_connection != null) {
+            return;
+        }
         _connection = new MySqlDatabaseConnection({
             //database: details.database,
-            host: details.host,
-            user: details.user,
-            pass: details.pass
+            host: _config.host,
+            user: _config.user,
+            pass: _config.pass
         });
     }
 
@@ -104,6 +120,7 @@ class MySqlDatabase implements IDatabase {
 
     public function connect():Promise<DatabaseResult<Bool>> {
         return new Promise((resolve, reject) -> {
+            createConnection();
             _connection.open().then(response -> {
                 if (_config.database == null) {
                     return null;
@@ -125,13 +142,15 @@ class MySqlDatabase implements IDatabase {
     public function disconnect():Promise<DatabaseResult<Bool>> {
         return new Promise((resolve, reject) -> {
             _connection.close();
+            _connection = null;
+            clearCachedSchema();
             resolve(new DatabaseResult(this, true));
         });
     }
 
     public function table(name:String):Promise<DatabaseResult<ITable>> {
         return new Promise((resolve, reject) -> {
-            _connection.get(SQL_TABLE_EXISTS, name).then(response -> {
+            _connection.get(SQL_TABLE_EXISTS, [_config.database, name]).then(response -> {
                 var table:ITable = new MySqlTable(this);
                 table.name = name;
                 table.exists = !(response.data == null);
@@ -149,6 +168,8 @@ class MySqlDatabase implements IDatabase {
                 var table:ITable = new MySqlTable(this);
                 table.name = name;
                 table.exists = true;
+
+                _schema = null;
                 resolve(new DatabaseResult(this, table));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "createTable"));
@@ -158,6 +179,7 @@ class MySqlDatabase implements IDatabase {
 
     public function deleteTable(name:String):Promise<DatabaseResult<Bool>> {
         return new Promise((resolve, reject) -> {
+            _schema = null;
             reject(new DatabaseError("not implemented", "deleteTable"));
         });
     }

@@ -232,7 +232,7 @@ class MySqlTable implements ITable {
                     relationshipDefinintions = null;
                 }
                 var values = [];
-                var sql = buildSelect(this, query, null, values, relationshipDefinintions, schemaResult.data);
+                var sql = buildSelect(this, query, null, null, values, relationshipDefinintions, schemaResult.data);
                 return connection.all(sql, values);
             }).then(response -> {
                 var records = [];

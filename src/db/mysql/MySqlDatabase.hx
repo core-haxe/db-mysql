@@ -98,6 +98,10 @@ class MySqlDatabase implements IDatabase {
         return _relationshipDefs;
     }
 
+    public function clearTableRelationships() {
+        _relationshipDefs = null;
+    }
+
     public function connect():Promise<DatabaseResult<Bool>> {
         return new Promise((resolve, reject) -> {
             _connection.open().then(response -> {

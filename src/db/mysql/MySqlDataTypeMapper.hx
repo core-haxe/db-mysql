@@ -34,7 +34,7 @@ class MySqlDataTypeMapper implements IDataTypeMapper {
     public function haxeTypeToDatabaseType(haxeType:ColumnType):String {
         return switch (haxeType) {
             case Number:        'INT';
-            case Decimal:       'DECIMAL';
+            case Decimal:       'DOUBLE';
             case Boolean:       'INT';
             case Text(n):       'VARCHAR($n)';
             case Memo:          'TEXT';
@@ -49,7 +49,7 @@ class MySqlDataTypeMapper implements IDataTypeMapper {
         var len = parts[1];
         if (type == "INT") {
             return Number;
-        } else if (type == "DECIMAL") {
+        } else if (type == "DOUBLE") {
             return Decimal;
         } else if (type == "VARCHAR") {
             return Text(Std.parseInt(len));

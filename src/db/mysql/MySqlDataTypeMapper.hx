@@ -44,6 +44,20 @@ class MySqlDataTypeMapper implements IDataTypeMapper {
     }
 
     public function databaseTypeToHaxeType(databaseType:String):ColumnType {
-        return Memo;
+        var parts = databaseType.split(":");
+        var type = parts[0].toUpperCase();
+        var len = parts[1];
+        if (type == "INT") {
+            return Number;
+        } else if (type == "DECIMAL") {
+            return Decimal;
+        } else if (type == "VARCHAR") {
+            return Text(Std.parseInt(len));
+        } else if (type == "TEXT") {
+            return Memo;
+        } else if (type == "BLOB") {
+            return Binary;
+        }
+        return Unknown;
     }
 }

@@ -71,7 +71,7 @@ class MySqlDatabase implements IDatabase {
     public function schema():Promise<DatabaseResult<DatabaseSchema>> {
         return new Promise((resolve, reject) -> {
             if (_schema == null) {
-                Utils.loadFullDatabaseSchema(_connection).then(schema -> {
+                Utils.loadFullDatabaseSchema(_connection, _config, MySqlDataTypeMapper.get()).then(schema -> {
                     _schema = schema;
                     resolve(new DatabaseResult(this, _schema));
                 }, (error:MySqlError) -> {

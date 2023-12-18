@@ -4,10 +4,12 @@ import mysql.MySqlError;
 import promises.Promise;
 import mysql.DatabaseConnection as MySqlDatabaseConnection;
 
+using StringTools;
+
 class Utils {
     public static inline var SQL_TABLE_EXISTS = "SELECT * FROM information_schema.TABLES WHERE TABLE_NAME=?;";
-    public static inline var SQL_LIST_TABLES_AND_FIELDS = "SELECT table_name, column_name, ordinal_position FROM information_schema.columns
-                                                           WHERE table_schema = 'persons'
+    public static inline var SQL_LIST_TABLES_AND_FIELDS = "SELECT * FROM information_schema.columns
+                                                           WHERE table_schema = ?
                                                            ORDER BY table_name,ordinal_position;";
 
     public static function MySqlError2DatabaseError(error:MySqlError, call:String) {
@@ -70,27 +72,53 @@ class Utils {
         return sql;
     }
 
-    public static function loadFullDatabaseSchema(connection:MySqlDatabaseConnection):Promise<DatabaseSchema> {
+    public static function loadFullDatabaseSchema(connection:MySqlDatabaseConnection, config:Dynamic, typeMapper:IDataTypeMapper):Promise<DatabaseSchema> {
         return new Promise((resolve, reject) -> {
-            var schema:DatabaseSchema = {};
-            connection.all(SQL_LIST_TABLES_AND_FIELDS).then(result -> {
-                for (r in result.data) {
-                    var table = schema.findTable(r.table_name);
-                    if (table == null) {
-                        table = {
-                            name: r.table_name
-                        };
-                        schema.tables.push(table);
+            var database:String = null;
+            if (config != null && config.database != null) {
+                database = config.database;
+            }
+            if (database == null) {
+                reject("no database name");
+            } else {
+                var schema:DatabaseSchema = {};
+                connection.all(SQL_LIST_TABLES_AND_FIELDS, [database]).then(result -> {
+                    for (r in result.data) {
+                        var table = schema.findTable(r.TABLE_NAME);
+                        if (table == null) {
+                            table = {
+                                name: r.TABLE_NAME
+                            };
+                            schema.tables.push(table);
+                        }
+
+                        var dbType = r.DATA_TYPE;
+                        if (r.CHARACTER_MAXIMUM_LENGTH != null) {
+                            dbType += ":" + r.CHARACTER_MAXIMUM_LENGTH;
+                        }
+
+                        var options = [];
+                        var columnKey:String = r.COLUMN_KEY;
+                        if (columnKey != null && columnKey.contains("PRI")) {
+                            options.push(ColumnOptions.PrimaryKey);
+                        }
+                        var extra:String = r.EXTRA;
+                        if (extra != null && extra.contains("auto_increment")) {
+                            options.push(ColumnOptions.AutoIncrement);
+                        }
+
+                        table.columns.push({
+                            name: r.COLUMN_NAME,
+                            type: typeMapper.databaseTypeToHaxeType(dbType),
+                            options: options
+
+                        });
                     }
-                    table.columns.push({
-                        name: r.column_name,
-                        type: null
-                    });
-                }
-                resolve(schema);
-            }, error -> {
-                reject(error);
-            });
+                    resolve(schema);
+                }, error -> {
+                    reject(error);
+                });
+            }
         });
     }
 

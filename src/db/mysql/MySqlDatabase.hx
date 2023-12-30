@@ -47,6 +47,18 @@ class MySqlDatabase implements IDatabase {
             user: _config.user,
             pass: _config.pass
         });
+        var autoReconnect = getProperty("autoReconnect", null);
+        var autoReconnectIntervalMS = getProperty("autoReconnectIntervalMS", null);
+        var replayQueriesOnReconnection = getProperty("replayQueriesOnReconnection", null);
+        if (autoReconnect != null) {
+            _connection.autoReconnect = autoReconnect;
+        }
+        if (autoReconnectIntervalMS != null) {
+            _connection.autoReconnectIntervalMS = autoReconnectIntervalMS;
+        }
+        if (replayQueriesOnReconnection != null) {
+            _connection.replayQueriesOnReconnection = replayQueriesOnReconnection;
+        }
     }
 
     public function create():Promise<DatabaseResult<IDatabase>> {

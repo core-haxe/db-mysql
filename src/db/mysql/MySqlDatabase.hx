@@ -55,6 +55,7 @@ class MySqlDatabase implements IDatabase {
                 resolve(new DatabaseResult(this));
                 return;
             } else {
+                _connection.connectionDetails.database = _config.database;
                 _connection.exec(buildCreateDatabase(_config.database)).then(response -> {
                     clearCachedSchema();
                     return _connection.query(buildSelectDatabase(_config.database));

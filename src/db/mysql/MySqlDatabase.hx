@@ -145,6 +145,7 @@ class MySqlDatabase implements IDatabase {
                 }
                 return _connection.query(buildSelectDatabase(_config.database));
             }).then(_ -> {
+                _connection.connectionDetails.database = _config.database;
                 resolve(new DatabaseResult(this, true));
             }, (error:MySqlError) -> {
                 reject(MySqlError2DatabaseError(error, "connect"));

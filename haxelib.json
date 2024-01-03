@@ -11,7 +11,8 @@
     "dependencies": {
         "db-core": "",
         "mysql": "",
-        "promises": ""
+        "promises": "",
+        "logging": ""
     },
     "classPath": "src",
     "name": "db-mysql",

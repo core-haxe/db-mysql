@@ -1,5 +1,6 @@
 package db.mysql;
 
+import logging.LogManager;
 import promises.PromiseUtils;
 import promises.Promise;
 import mysql.DatabaseConnection as MySqlDatabaseConnection;
@@ -7,8 +8,11 @@ import mysql.MySqlError;
 import db.mysql.Utils.*;
 import db.utils.SqlUtils.*;
 import Query.QueryExpr;
+import logging.Logger;
 
 class MySqlTable implements ITable {
+    private static var log = new Logger(MySqlTable, true);
+
     public var db:IDatabase;
     public var name:String;
     public var exists:Bool;
@@ -43,6 +47,8 @@ class MySqlTable implements ITable {
             
             var schemaChanged:Bool = false;
 
+            log.beginMeasure("applying schema");
+            log.debug("applying schema");
             schema().then(result -> {
                 var promises = [];
                 var currentSchema = result.data;
@@ -65,8 +71,10 @@ class MySqlTable implements ITable {
                     clearCachedSchema();
                     cast(db, MySqlDatabase).clearCachedSchema();
                 }
+                log.endMeasure("applying schema");
                 resolve(new DatabaseResult(db, this, newSchema));
             }, (error:DatabaseError) -> {
+                log.error("error applying schema");
                 reject(error);
             });
         });
@@ -79,6 +87,8 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("all");
+            log.debug("all");
             refreshSchema().then(schemaResult -> {
                 var values = [];
                 var sql = buildSelect(this, null, null, null, values, db.definedTableRelationships(), schemaResult.data);
@@ -88,8 +98,10 @@ class MySqlTable implements ITable {
                 for (item in response.data) {
                     records.push(Record.fromDynamic(item));
                 }
+                log.endMeasure("all");
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
+                log.error("all", error);
                 reject(MySqlError2DatabaseError(error, "connect"));
             });
         });
@@ -102,6 +114,8 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("page");
+            log.debug("page", [pageIndex, pageSize]);
             refreshSchema().then(schemaResult -> {
                 var relationshipDefinintions = db.definedTableRelationships();
                 if (!allowRelationships) {
@@ -115,8 +129,10 @@ class MySqlTable implements ITable {
                 for (item in response.data) {
                     records.push(Record.fromDynamic(item));
                 }
+                log.endMeasure("page");
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
+                log.error("page", error);
                 reject(MySqlError2DatabaseError(error, "connect"));
             });
         });
@@ -129,6 +145,10 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("add");
+            if (LogManager.instance.shouldLogDebug) {
+                log.debug("add", record.debugString());
+            }
             var insertedId:Int = -1;
             refreshSchema().then(schemaResult -> {
                 var values = [];
@@ -137,8 +157,10 @@ class MySqlTable implements ITable {
             }).then(response -> {
                 insertedId = response.data.insertId;
                 record.field("_insertedId", insertedId);
+                log.endMeasure("add");
                 resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
+                log.error("add", error);
                 reject(MySqlError2DatabaseError(error, "add"));
             });
         });
@@ -151,14 +173,18 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("addAll");
+            log.debug("addAll");
             var promises = [];
             for (record in records) {
                 promises.push(add.bind(record));
             }
 
             PromiseUtils.runSequentially(promises).then(results -> {
+                log.endMeasure("addAll");
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
+                log.error("addAll", error);
                 reject(MySqlError2DatabaseError(error, "addAll"));
             });
         });
@@ -171,13 +197,19 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("delete");
+            if (LogManager.instance.shouldLogDebug) {
+                log.debug("delete", record.debugString());
+            }
             refreshSchema().then(schemaResult -> {
                 var values = [];
                 var sql = buildDeleteRecord(this, record, values);
                 return connection.get(sql, values);
             }).then(response -> {
+                log.endMeasure("delete");
                 resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
+                log.error("delete", error);
                 reject(MySqlError2DatabaseError(error, "delete"));
             });
         });
@@ -190,11 +222,14 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("deleteAll");
             refreshSchema().then(schemaResult -> {
                 return connection.exec(buildDeleteWhere(this, query));
             }).then(response -> {
+                log.endMeasure("deleteAll");
                 resolve(new DatabaseResult(db, this, true));
             }, (error:MySqlError) -> {
+                log.error("deleteAll", error);
                 reject(MySqlError2DatabaseError(error, "deleteAll"));
             });
         });
@@ -207,13 +242,19 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("update");
+            if (LogManager.instance.shouldLogDebug) {
+                log.debug("update", record.debugString());
+            }
             refreshSchema().then(schemaResult -> {
                 var values = [];
                 var sql = buildUpdate(this, query, record, values, MySqlDataTypeMapper.get());
                 return connection.get(sql, values);
             }).then(response -> {
+                log.endMeasure("update");
                 resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
+                log.error("update", error);
                 reject(MySqlError2DatabaseError(error, "update"));
             });
         });
@@ -226,6 +267,8 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("find");
+            log.debug("find");
             refreshSchema().then(schemaResult -> {
                 var relationshipDefinintions = db.definedTableRelationships();
                 if (!allowRelationships) {
@@ -239,8 +282,10 @@ class MySqlTable implements ITable {
                 for (item in response.data) {
                     records.push(Record.fromDynamic(item));
                 }
+                log.endMeasure("find");
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
+                log.error("find");
                 reject(MySqlError2DatabaseError(error, "connect"));
             });
         });
@@ -253,6 +298,8 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("findOne");
+            log.debug("findOne");
             refreshSchema().then(schemaResult -> {
                 var relationshipDefinintions = db.definedTableRelationships();
                 if (!allowRelationships) {
@@ -268,8 +315,10 @@ class MySqlTable implements ITable {
                 } else if (response.data != null) {
                     record =  Record.fromDynamic(response.data);
                 }
+                log.endMeasure("findOne");
                 resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
+                log.error("findOne", error);
                 reject(MySqlError2DatabaseError(error, "connect"));
             });
         });
@@ -282,6 +331,8 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("findUnique");
+            log.debug("findUnique");
             refreshSchema().then(schemaResult -> {
                 var relationshipDefinintions = db.definedTableRelationships();
                 if (!allowRelationships) {
@@ -295,8 +346,10 @@ class MySqlTable implements ITable {
                 for (item in response.data) {
                     records.push(Record.fromDynamic(item));
                 }
+                log.endMeasure("findUnique");
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
+                log.error("findUnique", error);
                 reject(MySqlError2DatabaseError(error, "connect"));
             });
         });
@@ -309,13 +362,17 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("count");
+            log.debug("count");
             refreshSchema().then(schemaResult -> {
                 var sql = buildCount(this, query);
                 return connection.get(sql);
             }).then(response -> {
                 var record = Record.fromDynamic(response.data);
+                log.endMeasure("count");
                 resolve(new DatabaseResult(db, this, cast record.values()[0]));
             }, (error:MySqlError) -> {
+                log.error("count", error);
                 reject(MySqlError2DatabaseError(error, "connect"));
             });
         });
@@ -328,12 +385,16 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("addColumn");
+            log.debug("addColumn");
             var sql = buildAddColumns(this.name, [column], MySqlDataTypeMapper.get());
             connection.exec(sql).then(result -> {
                 clearCachedSchema();
                 cast(db, MySqlDatabase).clearCachedSchema();
+                log.endMeasure("addColumn");
                 resolve(new DatabaseResult(db, this, true));
             }, (error:MySqlError) -> {
+                log.error("addColumn", error);
                 reject(MySqlError2DatabaseError(error, "addColumn"));
             });
         });
@@ -346,12 +407,16 @@ class MySqlTable implements ITable {
                 return;
             }
 
+            log.beginMeasure("removeColumn");
+            log.debug("removeColumn");
             var sql = buildRemoveColumns(this.name, [column], MySqlDataTypeMapper.get());
             connection.exec(sql).then(result -> {
                 clearCachedSchema();
                 cast(db, MySqlDatabase).clearCachedSchema();
+                log.endMeasure("removeColumn");
                 resolve(new DatabaseResult(db, this, true));
             }, (error:MySqlError) -> {
+                log.error("removeColumn", error);
                 reject(MySqlError2DatabaseError(error, "addColumn"));
             });
         });

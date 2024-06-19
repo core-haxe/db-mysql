@@ -102,7 +102,7 @@ class MySqlTable implements ITable {
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
                 log.error("all", error);
-                reject(MySqlError2DatabaseError(error, "connect"));
+                reject(MySqlError2DatabaseError(error, "all"));
             });
         });
     }
@@ -133,7 +133,7 @@ class MySqlTable implements ITable {
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
                 log.error("page", error);
-                reject(MySqlError2DatabaseError(error, "connect"));
+                reject(MySqlError2DatabaseError(error, "page"));
             });
         });
     }
@@ -286,7 +286,7 @@ class MySqlTable implements ITable {
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
                 log.error("find");
-                reject(MySqlError2DatabaseError(error, "connect"));
+                reject(MySqlError2DatabaseError(error, "find"));
             });
         });
     }
@@ -319,7 +319,7 @@ class MySqlTable implements ITable {
                 resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
                 log.error("findOne", error);
-                reject(MySqlError2DatabaseError(error, "connect"));
+                reject(MySqlError2DatabaseError(error, "findOne"));
             });
         });
     }
@@ -350,7 +350,7 @@ class MySqlTable implements ITable {
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
                 log.error("findUnique", error);
-                reject(MySqlError2DatabaseError(error, "connect"));
+                reject(MySqlError2DatabaseError(error, "findUnique"));
             });
         });
     }
@@ -373,7 +373,7 @@ class MySqlTable implements ITable {
                 resolve(new DatabaseResult(db, this, cast record.values()[0]));
             }, (error:MySqlError) -> {
                 log.error("count", error);
-                reject(MySqlError2DatabaseError(error, "connect"));
+                reject(MySqlError2DatabaseError(error, "count"));
             });
         });
     }

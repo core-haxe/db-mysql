@@ -422,6 +422,26 @@ class MySqlTable implements ITable {
         });
     }
 
+    #if allow_raw
+    public function raw(data:String, values:Array<Any> = null):Promise<DatabaseResult<RecordSet>> {
+        return new Promise((resolve, reject) -> {
+            if (values == null) {
+                values = [];
+            }
+            var sql = data;
+            connection.all(sql, values).then(response -> {
+                var records:RecordSet = [];
+                for (item in response.data) {
+                    records.push(Record.fromDynamic(item));
+                }
+                resolve(new DatabaseResult(db, this, records));
+            }, (error:MySqlError) -> {
+                reject(MySqlError2DatabaseError(error, "raw"));
+            });
+        });
+    }
+    #end
+
     private var connection(get, null):MySqlDatabaseConnection;
     private function get_connection():MySqlDatabaseConnection {
         return @:privateAccess cast(db, MySqlDatabase)._connection;

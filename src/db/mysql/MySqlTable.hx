@@ -150,12 +150,23 @@ class MySqlTable implements ITable {
                 log.debug("add", record.debugString());
             }
             var insertedId:Int = -1;
-            refreshSchema().then(schemaResult -> {
+            var schema:DatabaseSchema = null;
+            refreshSchema(true).then(schemaResult -> {
+                schema = schemaResult.data;
                 var values = [];
                 var sql = buildInsert(this, record, values, MySqlDataTypeMapper.get());
                 return connection.get(sql, values);
             }).then(response -> {
                 insertedId = response.data.insertId;
+
+                var tableSchema = schema.findTable(this.name);
+                if (tableSchema != null) {
+                    var primaryKeyColumns = tableSchema.findPrimaryKeyColumns();
+                    if (primaryKeyColumns.length == 1) { // we'll only "auto set" the primary key column if there is _only_ one of them
+                        record.field(primaryKeyColumns[0].name, insertedId);
+                    }
+                }
+
                 record.field("_insertedId", insertedId);
                 log.endMeasure("add");
                 resolve(new DatabaseResult(db, this, record));
@@ -447,10 +458,10 @@ class MySqlTable implements ITable {
         return @:privateAccess cast(db, MySqlDatabase)._connection;
     }
 
-    private function refreshSchema():Promise<DatabaseResult<DatabaseSchema>> { // we'll only refresh the data schema if there are table relationships, since the queries might need them
+    private function refreshSchema(force:Bool = false):Promise<DatabaseResult<DatabaseSchema>> { // we'll only refresh the data schema if there are table relationships, since the queries might need them
         return new Promise((resolve, reject) -> {
             var alwaysAliasResultFields:Bool = this.db.getProperty("alwaysAliasResultFields", false);
-            if (alwaysAliasResultFields == false && db.definedTableRelationships() == null) {
+            if (force == false && alwaysAliasResultFields == false && db.definedTableRelationships() == null) {
                 resolve(new DatabaseResult(db, this, null));
                 return;
             }

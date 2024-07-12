@@ -172,7 +172,9 @@ class MySqlTable implements ITable {
 
                 record.field("_insertedId", insertedId);
                 log.endMeasure("add");
-                resolve(new DatabaseResult(db, this, record));
+                var result = new DatabaseResult(db, this, record);
+                result.itemsAffected = response.affectedRows;
+                resolve(result);
             }, (error:MySqlError) -> {
                 log.error("add", error);
                 reject(MySqlError2DatabaseError(error, "add"));
@@ -196,7 +198,13 @@ class MySqlTable implements ITable {
 
             PromiseUtils.runSequentially(promises).then(results -> {
                 log.endMeasure("addAll");
-                resolve(new DatabaseResult(db, this, records));
+                var itemsAffected = 0;
+                for (result in results) {
+                    itemsAffected += result.itemsAffected;
+                }
+                var result = new DatabaseResult(db, this, records);
+                result.itemsAffected = itemsAffected;
+                resolve(result);
             }, (error:MySqlError) -> {
                 log.error("addAll", error);
                 reject(MySqlError2DatabaseError(error, "addAll"));
@@ -221,7 +229,9 @@ class MySqlTable implements ITable {
                 return connection.get(sql, values);
             }).then(response -> {
                 log.endMeasure("delete");
-                resolve(new DatabaseResult(db, this, record));
+                var result = new DatabaseResult(db, this, record);
+                result.itemsAffected = response.affectedRows;
+                resolve(result);
             }, (error:MySqlError) -> {
                 log.error("delete", error);
                 reject(MySqlError2DatabaseError(error, "delete"));
@@ -241,7 +251,9 @@ class MySqlTable implements ITable {
                 return connection.exec(buildDeleteWhere(this, query));
             }).then(response -> {
                 log.endMeasure("deleteAll");
-                resolve(new DatabaseResult(db, this, true));
+                var result = new DatabaseResult(db, this, true);
+                result.itemsAffected = response.affectedRows;
+                resolve(result);
             }, (error:MySqlError) -> {
                 log.error("deleteAll", error);
                 reject(MySqlError2DatabaseError(error, "deleteAll"));
@@ -266,7 +278,9 @@ class MySqlTable implements ITable {
                 return connection.get(sql, values);
             }).then(response -> {
                 log.endMeasure("update");
-                resolve(new DatabaseResult(db, this, record));
+                var result = new DatabaseResult(db, this, record);
+                result.itemsAffected = response.affectedRows;
+                resolve(result);
             }, (error:MySqlError) -> {
                 log.error("update", error);
                 reject(MySqlError2DatabaseError(error, "update"));

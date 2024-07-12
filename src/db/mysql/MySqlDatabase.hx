@@ -118,8 +118,11 @@ class MySqlDatabase implements IDatabase {
     }
 
     private var _schema:DatabaseSchema = null;
-    public function schema():Promise<DatabaseResult<DatabaseSchema>> {
+    public function schema(force:Bool = false):Promise<DatabaseResult<DatabaseSchema>> {
         return new Promise((resolve, reject) -> {
+            if (force) {
+                clearCachedSchema();
+            }
             if (_schema == null) {
                 log.beginMeasure("schema");
                 log.debug("loading database schema for:", _config.database);

@@ -214,7 +214,7 @@ class MySqlDatabase implements IDatabase {
                 } else {
                     log.debug("table not found:", [_config.database, name]);
                 }
-                resolve(new DatabaseResult(this, table));
+                resolve(new DatabaseResult(this, table, table));
             }, (error:MySqlError) -> {
                 log.endMeasure("table " + name);
                 log.error("error looking for table:", error);
@@ -235,7 +235,7 @@ class MySqlDatabase implements IDatabase {
 
                 log.endMeasure("createTable " + name);
                 _schema = null;
-                resolve(new DatabaseResult(this, table));
+                resolve(new DatabaseResult(this, table, table));
             }, (error:MySqlError) -> {
                 log.endMeasure("createTable " + name);
                 log.error("error creating table", error);

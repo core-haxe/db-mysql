@@ -52,7 +52,8 @@ class MySqlTable implements ITable {
 
             log.beginMeasure("applying schema");
             log.debug("applying schema");
-            schema().then(result -> {
+            // we always want to force refresh the schema, so we are working with the latest, not a cached copy
+            schema(true).then(result -> {
                 var promises = [];
                 var currentSchema = result.data;
                 if (currentSchema != null && !currentSchema.equals(newSchema)) {

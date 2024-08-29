@@ -52,9 +52,14 @@ class MySqlDatabase implements IDatabase {
 
         log.debug("creating connection");
 
+        var port = 3306;
+        if (_config.port != null) {
+            port = _config.port;
+        }
         _connection = new MySqlDatabaseConnection({
             //database: details.database,
             host: _config.host,
+            port: port,
             user: _config.user,
             pass: _config.pass
         });

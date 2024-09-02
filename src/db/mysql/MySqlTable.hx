@@ -161,7 +161,9 @@ class MySqlTable implements ITable {
                 var sql = buildInsert(this, record, values, MySqlDataTypeMapper.get());
                 return connection.get(sql, values);
             }).then(response -> {
-                insertedId = response.data.insertId;
+                if (response.data != null) {
+                    insertedId = response.data.insertId;
+                }
 
                 var tableSchema = schema.findTable(this.name);
                 if (tableSchema != null) {

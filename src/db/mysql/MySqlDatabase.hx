@@ -1,11 +1,9 @@
 package db.mysql;
 
-import sys.db.Mysql;
 import mysql.MySqlError;
 import promises.Promise;
 import mysql.DatabaseConnection as MySqlDatabaseConnection;
 import db.mysql.Utils.*;
-import db.utils.SqlUtils.*;
 import logging.Logger;
 
 class MySqlDatabase implements IDatabase {

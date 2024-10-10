@@ -40,7 +40,7 @@ class Utils {
         var primaryKey:String = null;
         for (column in columns) {
             var type = typeMapper.haxeTypeToDatabaseType(column.type);
-            var columnSql = '    ${column.name}';
+            var columnSql = '    `${column.name}`';
             columnSql += ' ${type}';
             var suffix = '';
             if (column.options != null) {

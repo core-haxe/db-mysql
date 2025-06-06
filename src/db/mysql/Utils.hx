@@ -123,7 +123,7 @@ class Utils {
     }
 
     public static function buildAddColumns(tableName:String, columns:Array<ColumnDefinition>, typeMapper:IDataTypeMapper):String {
-        var sql = 'ALTER TABLE ${tableName}\n';
+        var sql = 'ALTER TABLE `${tableName}`\n';
 
         for (column in columns) {
             var type = typeMapper.haxeTypeToDatabaseType(column.type);

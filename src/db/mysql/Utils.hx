@@ -136,10 +136,10 @@ class Utils {
     }
 
     public static function buildRemoveColumns(tableName:String, columns:Array<ColumnDefinition>, typeMapper:IDataTypeMapper):String {
-        var sql = 'ALTER TABLE ${tableName}\n';
+        var sql = 'ALTER TABLE `${tableName}`\n';
 
         for (column in columns) {
-            sql += 'DROP COLUMN ${column.name}';
+            sql += 'DROP COLUMN `${column.name}`';
         }
 
         sql += ';';

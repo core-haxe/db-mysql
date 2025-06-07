@@ -84,6 +84,24 @@ class MySqlTable implements ITable {
         });
     }
 
+    public function createIndex(fields:Array<String>, unique:Bool = false, name:String = null):Promise<DatabaseResult<ITable>> {
+        return new Promise((resolve, reject) -> {
+            var sql = buildHasIndexMySql(this, fields, unique, name);
+            connection.get(sql).then(result -> {
+                var indexExists = result.data.index_exists;
+                if (indexExists == 1) {
+                    return null;
+                }
+                sql = buildCreateIndexMySql(this, fields, unique, name);
+                return connection.exec(sql);
+            }).then(result -> {
+                resolve(new DatabaseResult(db, this));
+            }, (error:DatabaseError) -> {
+                reject(error);
+            });
+        });
+    }
+
     public function all():Promise<DatabaseResult<RecordSet>> {
         return new Promise((resolve, reject) -> {
             if (!exists) {

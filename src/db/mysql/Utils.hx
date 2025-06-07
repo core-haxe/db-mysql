@@ -72,6 +72,48 @@ class Utils {
         return sql;
     }
 
+    public static function buildHasIndexMySql(table:ITable, fields:Array<String>, unique:Bool, name:String) {
+        var tableName = table.name;
+        if (name == null) {
+            name = "idx_" + fields.join("_");
+        }
+        var sql = '
+            SELECT COUNT(*) AS index_exists
+            FROM information_schema.statistics
+            WHERE table_schema = DATABASE()
+            AND table_name = \'${tableName}\'
+            AND index_name = \'${name}\';
+        ';
+        return sql;
+    }
+
+    public static function buildCreateIndexMySql(table:ITable, fields:Array<String>, unique:Bool, name:String):String {
+        var tableName = table.name;
+        if (name == null) {
+            name = "idx_" + fields.join("_");
+        }
+        var escapedFields = [];
+        for (field in fields) {
+            escapedFields.push('`${field}`');
+        }
+
+        var sb = new StringBuf();
+        sb.add('CREATE');
+        if (unique) {
+            sb.add(' UNIQUE');
+        }
+        sb.add(' INDEX ');
+        sb.add(name);
+        sb.add(' ON ');
+        sb.add(tableName);
+        sb.add('(');
+        sb.add(escapedFields.join(","));
+        sb.add(')');
+        sb.add(';');
+
+        return sb.toString();
+    }
+
     public static function loadFullDatabaseSchema(connection:MySqlDatabaseConnection, config:Dynamic, typeMapper:IDataTypeMapper):Promise<DatabaseSchema> {
         return new Promise((resolve, reject) -> {
             var database:String = null;

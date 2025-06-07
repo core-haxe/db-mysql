@@ -75,7 +75,7 @@ class Utils {
     public static function buildHasIndexMySql(table:ITable, fields:Array<String>, unique:Bool, name:String) {
         var tableName = table.name;
         if (name == null) {
-            name = "idx_" + fields.join("_");
+            name = "idx_" + tableName + "_" + fields.join("_");
         }
         var sql = '
             SELECT COUNT(*) AS index_exists
@@ -90,7 +90,7 @@ class Utils {
     public static function buildCreateIndexMySql(table:ITable, fields:Array<String>, unique:Bool, name:String):String {
         var tableName = table.name;
         if (name == null) {
-            name = "idx_" + fields.join("_");
+            name = "idx_" + tableName + "_" + fields.join("_");
         }
         var escapedFields = [];
         for (field in fields) {

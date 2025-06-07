@@ -89,7 +89,7 @@ class MySqlTable implements ITable {
             var sql = buildHasIndexMySql(this, fields, unique, name);
             connection.get(sql).then(result -> {
                 var indexExists = result.data.index_exists;
-                if (indexExists == 1) {
+                if (indexExists > 0) {
                     return null;
                 }
                 sql = buildCreateIndexMySql(this, fields, unique, name);

@@ -78,7 +78,7 @@ class MySqlTable implements ITable {
                 log.endMeasure("applying schema");
                 resolve(new DatabaseResult(db, this, newSchema));
             }, (error:DatabaseError) -> {
-                log.error("error applying schema");
+                log.error("error applying schema - " + error.toString());
                 reject(error);
             });
         });
@@ -123,7 +123,7 @@ class MySqlTable implements ITable {
                 log.endMeasure("all");
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
-                log.error("all", error);
+                log.error("all - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "all"));
             });
         });
@@ -154,7 +154,7 @@ class MySqlTable implements ITable {
                 log.endMeasure("page");
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
-                log.error("page", error);
+                log.error("page - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "page"));
             });
         });
@@ -197,7 +197,7 @@ class MySqlTable implements ITable {
                 result.itemsAffected = response.affectedRows;
                 resolve(result);
             }, (error:MySqlError) -> {
-                log.error("add", error);
+                log.error("add - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "add"));
             });
         });
@@ -227,7 +227,7 @@ class MySqlTable implements ITable {
                 result.itemsAffected = itemsAffected;
                 resolve(result);
             }, (error:MySqlError) -> {
-                log.error("addAll", error);
+                log.error("addAll - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "addAll"));
             });
         });
@@ -254,7 +254,7 @@ class MySqlTable implements ITable {
                 result.itemsAffected = response.affectedRows;
                 resolve(result);
             }, (error:MySqlError) -> {
-                log.error("delete", error);
+                log.error("delete - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "delete"));
             });
         });
@@ -276,7 +276,7 @@ class MySqlTable implements ITable {
                 result.itemsAffected = response.affectedRows;
                 resolve(result);
             }, (error:MySqlError) -> {
-                log.error("deleteAll", error);
+                log.error("deleteAll - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "deleteAll"));
             });
         });
@@ -303,7 +303,7 @@ class MySqlTable implements ITable {
                 result.itemsAffected = response.affectedRows;
                 resolve(result);
             }, (error:MySqlError) -> {
-                log.error("update", error);
+                log.error("update - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "update"));
             });
         });
@@ -334,7 +334,7 @@ class MySqlTable implements ITable {
                 log.endMeasure("find");
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
-                log.error("find");
+                log.error("find - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "find"));
             });
         });
@@ -367,7 +367,7 @@ class MySqlTable implements ITable {
                 log.endMeasure("findOne");
                 resolve(new DatabaseResult(db, this, record));
             }, (error:MySqlError) -> {
-                log.error("findOne", error);
+                log.error("findOne - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "findOne"));
             });
         });
@@ -398,7 +398,7 @@ class MySqlTable implements ITable {
                 log.endMeasure("findUnique");
                 resolve(new DatabaseResult(db, this, records));
             }, (error:MySqlError) -> {
-                log.error("findUnique", error);
+                log.error("findUnique - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "findUnique"));
             });
         });
@@ -421,7 +421,7 @@ class MySqlTable implements ITable {
                 log.endMeasure("count");
                 resolve(new DatabaseResult(db, this, cast record.values()[0]));
             }, (error:MySqlError) -> {
-                log.error("count", error);
+                log.error("count - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "count"));
             });
         });
@@ -443,7 +443,7 @@ class MySqlTable implements ITable {
                 log.endMeasure("addColumn");
                 resolve(new DatabaseResult(db, this, true));
             }, (error:MySqlError) -> {
-                log.error("addColumn", error);
+                log.error("addColumn - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "addColumn"));
             });
         });
@@ -465,7 +465,7 @@ class MySqlTable implements ITable {
                 log.endMeasure("removeColumn");
                 resolve(new DatabaseResult(db, this, true));
             }, (error:MySqlError) -> {
-                log.error("removeColumn", error);
+                log.error("removeColumn - " + error.toString());
                 reject(MySqlError2DatabaseError(error, "addColumn"));
             });
         });

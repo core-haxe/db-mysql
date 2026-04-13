@@ -54,13 +54,23 @@ class MySqlDatabase implements IDatabase {
         if (_config.port != null) {
             port = _config.port;
         }
-        _connection = new MySqlDatabaseConnection({
-            //database: details.database,
-            host: _config.host,
-            port: port,
-            user: _config.user,
-            pass: _config.pass
-        });
+        if (_config.noPooling == true) {
+            _connection = new MySqlDatabaseConnection({
+                //database: _config.database,
+                host: _config.host,
+                port: port,
+                user: _config.user,
+                pass: _config.pass
+            });
+        } else {
+            _connection = new MySqlDatabaseConnection({
+                database: _config.database,
+                host: _config.host,
+                port: port,
+                user: _config.user,
+                pass: _config.pass
+            });
+        }
         var autoReconnect = getProperty("autoReconnect", null);
         var autoReconnectIntervalMS = getProperty("autoReconnectIntervalMS", null);
         var replayQueriesOnReconnection = getProperty("replayQueriesOnReconnection", null);
